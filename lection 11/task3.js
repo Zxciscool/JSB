@@ -3,24 +3,23 @@
  спроб у разі помилки та повертає результат останнього виклику. */
 
  function retry(fn, maxAttempts) {
-    return async function(...args) {
-      let attempt = 0;
+  return async function(...args) {
       let lastError;
-      let result;
-  
-      // Поки не досягнуто максимального числа спроб
-      while (attempt < maxAttempts) {
-        try {
-          result = await fn(...args); // намагаємось викликати оригінальну функцію
-          return result; // Якщо виклик успішний, повертаємо результат
-        } catch (error) {
-          lastError = error; // Якщо помилка, запам'ятовуємо її
-          attempt++; // збільшуємо лічильник спроб
-          console.log(`Attempt ${attempt} failed, retrying...`);
-        }
+      
+      // Виконуємо спроби від 1 до maxAttempts
+      for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+          try {
+              console.log(`Спроба ${attempt} з ${maxAttempts}`);
+              return await fn.apply(this, args);
+          } catch (error) {
+              console.log(`Помилка при спробі ${attempt}:`, error.message);
+              lastError = error;
+              
+              // Якщо це остання спроба - викидаємо помилку
+              if (attempt === maxAttempts) {
+                  throw new Error(`Всі ${maxAttempts} спроб завершились невдачею. Остання помилка: ${lastError.message}`);
+              }
+          }
       }
-      // Якщо всі спроби не вдалися, повертаємо результат останнього виклику або викидаємо помилку
-      console.log(`All attempts failed. Last error: ${lastError.message}`);
-      return result; // Повертаємо результат останньої спроби (можливо, помилка)
-    };
   }
+}

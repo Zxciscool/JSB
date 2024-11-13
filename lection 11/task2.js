@@ -3,16 +3,18 @@
   на відповідність заданому validator. Якщо аргументи не проходять перевірку, 
   то декоратор має викидати виняток. */
 
-  // Декоратор validate
-function validate(fn, validator) {
+  function validate(fn, validator) {
+    // Повертаємо нову функцію, яка обгортає оригінальну
     return function(...args) {
-      // Перевірка кожного аргументу через валідатор
-      for (const arg of args) {
-        if (!validator(arg)) {
-          throw new Error('Argument is not valid');
+        // Перевіряємо аргументи через validator
+        const isValid = validator(...args);
+        
+        // Якщо перевірка не пройдена - кидаємо помилку
+        if (!isValid) {
+            throw new Error('Невалідні аргументи функції');
         }
-      }
-      // Якщо всі аргументи проходять перевірку, викликаємо оригінальну функцію
-      return fn(...args);
-    };
-  }
+        
+        // Якщо все добре - викликаємо оригінальну функцію
+        return fn.apply(this, args);
+    }
+}
